@@ -16,7 +16,15 @@ event smtp_data(c: connection, is_orig: bool, data: string)
     }
 
     local fname = generate_extraction_filename(path, c, fmt("%s_.data", c$uid));
-    local f = open_for_append(fname);
-    write_file(f, data + "\n");
-    close(f);
+
+    if (file_size(fname) < 1)
+    {
+        local o = open(fname);
+        write_file(o, "From nobody  Thu Jan 1 00:00:00 1970\n");
+        close(o);
+    }
+
+    local a = open_for_append(fname);
+    write_file(a, data + "\n");
+    close(a);
 }
