@@ -9,20 +9,15 @@ export {
 
 event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string, msg: string, cont_resp: bool)
 {
+    if (code == 220 || cmd == "X-ANONYMOUSTLS" || cmd == "STARTTLS")
+    {
+        return;
+    }
+
     local fname = fmt("SMTP-%s.envelope", c$uid);
+
     local p = fmt("%s.envelopes/%s", path, fname);
     local f = open_for_append(p);
-
-    if (code == 220)
-    {
-        return;
-    }
-
-    if (c$smtp$tls == T)
-    {
-        unlink(p);
-        return;
-    }
 
     if (cont_resp == F)
     {
@@ -45,6 +40,12 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string)
 {
     local fname = fmt("%s.envelopes/SMTP-%s.envelope", path, c$uid);
     local f = open_for_append(fname);
+
+    if (c$smtp$tls == T || command == "X-ANONYMOUSTLS" || command == "STARTTLS")
+    {
+        unlink(fname);
+        return;
+    }
 
     write_file(f, fmt("%s %s\n", command, arg));
     close(f);
