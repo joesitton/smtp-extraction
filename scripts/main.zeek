@@ -15,16 +15,26 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string, msg: st
     }
 
     local md5 = md5_hash(c$id, c$uid);
-    local fname = fmt("%s/.envelopes/SMTP-%s.envelope", path, md5);
+    local fname = fmt("%s/.SMTP-%s.envelope", path, md5);
     local f = open_for_append(fname);
+
+    if (cmd == "(UNKNOWN)")
+    {
+        cmd = "";
+    }
+
+    if (msg == "(UNKNOWN)")
+    {
+        msg = "";
+    }
 
     if (cont_resp == F)
     {
-        write_file(f, fmt("%s %s %s\n", code, cmd, msg));
+        write_file(f, fmt("%s%s%s%s%s\n", code, cmd == "" ? "" : " ", cmd, msg == "" ? "" : " ", msg));
     }
     else
     {
-        write_file(f, fmt("%s %s\n", code, msg));
+        write_file(f, fmt("%s%s%s\n", code, msg == "" ? "" : " ", msg));
     }
 
     close(f);
@@ -37,7 +47,7 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string, msg: st
 
 event smtp_request(c: connection, is_orig: bool, command: string, arg: string)
 {
-    local fname = fmt("%s/.envelopes/SMTP-%s.envelope", path, md5_hash(c$id, c$uid));
+    local fname = fmt("%s/.SMTP-%s.envelope", path, md5_hash(c$id, c$uid));
     local f = open_for_append(fname);
 
     if (c$smtp$tls == T || command == "X-ANONYMOUSTLS" || command == "STARTTLS")
@@ -46,7 +56,17 @@ event smtp_request(c: connection, is_orig: bool, command: string, arg: string)
         return;
     }
 
-    write_file(f, fmt("%s %s\n", command, arg));
+    if (command == "(UNKNOWN)")
+    {
+        command = "";
+    }
+
+    if (arg == "(UNKNOWN)")
+    {
+        arg = "";
+    }
+
+    write_file(f, fmt("%s%s%s\n", command, arg == "" ? "" : " ", arg));
     close(f);
 }
 
