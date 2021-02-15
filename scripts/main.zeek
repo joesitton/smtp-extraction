@@ -14,8 +14,8 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string, msg: st
         return;
     }
 
-    local md5 = md5_hash(c$id, c$uid);
-    local fname = fmt("%s/.SMTP-%s.envelope", path, md5);
+    local sha256 = sha256_hash(c$id, c$uid);
+    local fname = fmt("%s/.SMTP-%s.envelope", path, sha256);
     local f = open_for_append(fname);
 
     if (cmd == "(UNKNOWN)")
@@ -41,13 +41,13 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string, msg: st
 
     if (cmd == "QUIT")
     {
-        rename(fname, fmt("%s/SMTP-%s.envelope", path, md5));
+        rename(fname, fmt("%s/SMTP-%s.envelope", path, sha256));
     }
 }
 
 event smtp_request(c: connection, is_orig: bool, command: string, arg: string)
 {
-    local fname = fmt("%s/.SMTP-%s.envelope", path, md5_hash(c$id, c$uid));
+    local fname = fmt("%s/.SMTP-%s.envelope", path, sha256_hash(c$id, c$uid));
     local f = open_for_append(fname);
 
     if (c$smtp$tls == T || command == "X-ANONYMOUSTLS" || command == "STARTTLS")
@@ -78,7 +78,7 @@ event smtp_data(c: connection, is_orig: bool, data: string)
         return;
     }
 
-    local fname = fmt("%s/SMTP-%s.data", path, md5_hash(c$id, c$uid));
+    local fname = fmt("%s/SMTP-%s.data", path, sha256_hash(c$id, c$uid));
     local f = open_for_append(fname);
 
     if (file_size(fname) < 1)
