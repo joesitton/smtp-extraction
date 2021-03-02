@@ -41,6 +41,7 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string, msg: st
 
     if (cmd == "QUIT")
     {
+        rename(fmt("%s/.SMTP-%s.data", path, sha256), fmt("%s/SMTP-%s.data", path, sha256));
         rename(fname, fmt("%s/SMTP-%s.envelope", path, sha256));
     }
 }
@@ -78,7 +79,7 @@ event smtp_data(c: connection, is_orig: bool, data: string)
         return;
     }
 
-    local fname = fmt("%s/SMTP-%s.data", path, sha256_hash(c$id, c$uid));
+    local fname = fmt("%s/.SMTP-%s.data", path, sha256_hash(c$id, c$uid));
     local f = open_for_append(fname);
 
     if (file_size(fname) < 1)
