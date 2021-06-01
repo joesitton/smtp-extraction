@@ -7,6 +7,18 @@ export {
     const path: string = "" &redef;
 }
 
+event zeek_init()
+{
+    local paths = split_string(path, /\//);
+    local current = "";
+
+    for (p in paths)
+    {
+       current = fmt("%s/%s", current, paths[p]);
+       mkdir(current);
+    }
+}
+
 event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string, msg: string, cont_resp: bool)
 {
     if (code == 220 || cmd == "X-ANONYMOUSTLS" || cmd == "STARTTLS")
