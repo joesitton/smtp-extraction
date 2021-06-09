@@ -49,13 +49,13 @@ event smtp_reply(c: connection, is_orig: bool, code: count, cmd: string, msg: st
         write_file(f, fmt("%s%s%s\n", code, msg == "" ? "" : " ", msg));
     }
 
-    close(f);
-
     if (cmd == "QUIT")
     {
         rename(fmt("%s/.SMTP-%s.mbox", path, sha256), fmt("%s/SMTP-%s.mbox", path, sha256));
         rename(fname, fmt("%s/SMTP-%s.envelope", path, sha256));
     }
+
+    close(f);
 }
 
 event smtp_request(c: connection, is_orig: bool, command: string, arg: string)
